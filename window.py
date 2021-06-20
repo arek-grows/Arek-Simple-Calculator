@@ -2,11 +2,12 @@ from tkinter import *
 import textwrap
 
 output_text = ''  # input - updates on every button
+
+operating_list = []  # iterable for math when '=' pressed
+# update this before calling update_memory() to change the memory text output
 memory_text = ''  # memory - updates on CE, operators, and =
 
 operators = ['÷', '×', '-', '+']
-previous_number = ''
-previous_operator = ''
 
 
 def btn_clicked():
@@ -14,14 +15,16 @@ def btn_clicked():
 
 
 def update_output(delete_previous_operator=False):
-    if delete_previous_operator:
-        global previous_operator
-        previous_operator = ''
     global output_text
     output['text'] = output_text
 
 
 def update_memory():
+    global memory_text, operating_list
+    if operating_list:
+        memory_text = ''.join(operating_list)
+    else:
+        memory_text = ''
     memory['text'] = textwrap.fill(memory_text, 16)
 
 
@@ -85,19 +88,110 @@ def btn9_clicked():
     update_output(True)
 
 
-def bmin_clicked():
-    global output_text, memory_text, operators, previous_operator
-    if not output_text:
-        return print('operator clicked with no number input')
-    if not previous_operator:
-        previous_operator = operators[2]
+def operator_clicked(oper):
+    global output_text, memory_text, operators, operating_list
 
-        memory_text += "%s%s" % (output_text, previous_operator)
-        update_memory()
-
+    if not memory_text and not output_text:  # None / None, do nothing
+        return print('operator clicked with no memory or number input')
+    elif not memory_text and output_text:  # None / 100, create (just append?) memory and delete input (output_text)
+        operating_list.append(output_text)
+        operating_list.append(oper)
         output_text = ''
         update_output()
-        return
+        update_memory()
+        return print('operator clicked with no memory but with number input')
+    elif memory_text and not output_text:  # 100 - / None, change operator in memory
+        operating_list[-1] = oper
+        update_memory()
+        return print('operator clicked with memory but no number input')
+    else:  # 100 - / 100, append to memory and delete input (same as case 2?)
+        operating_list.append(output_text)
+        operating_list.append(oper)
+        output_text = ''
+        update_output()
+        update_memory()
+        return print('operator clicked with memory and number input')
+
+
+def bmin_clicked():
+    operator_clicked('-')
+    return print('- clicked')
+
+
+def bplus_clicked():
+    operator_clicked('+')
+
+
+def bdiv_clicked():
+    operator_clicked('÷')
+
+
+def bmul_clicked():
+    operator_clicked('×')
+
+
+def bneg_clicked():
+    global output_text
+    if '.' in  output_text:
+        output_text = str(float(output_text)*-1)
+    elif output_text:
+        output_text = str(int(output_text)*-1)
+    update_output()
+
+
+def btnCE_clicked():
+    global operating_list, output_text
+    operating_list = []
+    output_text = ''
+    update_output()
+    update_memory()
+    return print('everything cleared')
+
+
+def btnC_clicked():
+    global output_text
+    output_text = ''
+    update_output()
+    print('number input cleared')
+
+
+def bequ_clicked():
+    global operating_list, output_text
+    if not operating_list:
+        return print('equals pressed when nothing in operating_list')
+    else:
+        operating_list.append(output_text)
+        update_memory()
+        opl = operating_list
+        total = float(operating_list[0])
+        try:
+            for i in range(1, len(operating_list), 2):
+                if opl[i] == '÷':
+                    total /= float(opl[i+1])
+                elif opl[i] == '×':
+                    total *= float(opl[i+1])
+                elif opl[i] == '-':
+                    total -= float(opl[i + 1])
+                elif opl[i] == '+':
+                    total += float(opl[i + 1])
+                else:
+                    return print('equals error')
+        except:
+            operating_list = []
+            output_text = ''
+            memory['text'] = 'error'
+            update_output()
+            return print('math error')
+        del opl
+        print(total)
+        total_string = str(total)
+        if int(total_string[total_string.index('.')+1:]) == 0:
+            output_text = str(int(total))
+            update_output()
+        else:
+            output_text = str(round(float(total), 2))
+            update_output()
+        operating_list = []
 
 
 window = Tk()
@@ -113,7 +207,7 @@ canvas = Canvas(
     highlightthickness=0,
     relief="ridge")
 canvas.place(x=0, y=0)
-# output(bottom)
+# output (bottom)
 entry0_img = PhotoImage(file=f"img_textBox0.png")
 entry0_bg = canvas.create_image(
     85.0, 102.0,
@@ -283,7 +377,7 @@ bplus = Button(
     image=img7,
     borderwidth=0,
     highlightthickness=0,
-    command=btn_clicked,
+    command=bplus_clicked,
     relief="flat")
 bplus.place(
     x=128, y=250,
@@ -295,7 +389,7 @@ bdiv = Button(
     image=img16,
     borderwidth=0,
     highlightthickness=0,
-    command=btn_clicked,
+    command=bdiv_clicked,
     relief="flat")
 bdiv.place(
     x=128, y=124,
@@ -307,7 +401,7 @@ bmul = Button(
     image=img13,
     borderwidth=0,
     highlightthickness=0,
-    command=btn_clicked,
+    command=bmul_clicked,
     relief="flat")
 bmul.place(
     x=128, y=166,
@@ -319,7 +413,7 @@ bequ = Button(
     image=img9,
     borderwidth=0,
     highlightthickness=0,
-    command=btn_clicked,
+    command=bequ_clicked,
     relief="flat")
 bequ.place(
     x=128, y=292,
@@ -331,7 +425,7 @@ bCE = Button(
     image=img10,
     borderwidth=0,
     highlightthickness=0,
-    command=btn_clicked,
+    command=btnCE_clicked,
     relief="flat")
 bCE.place(
     x=2, y=124,
@@ -343,7 +437,7 @@ bC = Button(
     image=img12,
     borderwidth=0,
     highlightthickness=0,
-    command=btn_clicked,
+    command=btnC_clicked,
     relief="flat")
 bC.place(
     x=44, y=124,
@@ -355,7 +449,7 @@ bneg = Button(
     image=img14,
     borderwidth=0,
     highlightthickness=0,
-    command=btn_clicked,
+    command=bneg_clicked,
     relief="flat")
 bneg.place(
     x=86, y=124,
