@@ -5,17 +5,18 @@ output_text = ''  # input - updates on every button
 
 operating_list = []  # iterable for math when '=' pressed
 # update this before calling update_memory() to change the memory text output
+
 memory_text = ''  # memory - updates on CE, operators, and =
 
 operators = ['÷', '×', '-', '+']
+operated = False
 
 
-def btn_clicked():
-    print("Button Clicked")
-
-
-def update_output(delete_previous_operator=False):
-    global output_text
+def update_output():
+    global output_text, operated
+    if operated:
+        output_text = output_text[-1]
+        operated = False
     output['text'] = output_text
 
 
@@ -31,69 +32,71 @@ def update_memory():
 def btn0_clicked():
     global output_text
     output_text += '0'
-    update_output(True)
+    update_output()
 
 
 def btn1_clicked():
     global output_text
     output_text += '1'
-    update_output(True)
+    update_output()
 
 
 def btn2_clicked():
     global output_text
     output_text += '2'
-    update_output(True)
+    update_output()
 
 
 def btn3_clicked():
     global output_text
     output_text += '3'
-    update_output(True)
+    update_output()
 
 
 def btn4_clicked():
     global output_text
     output_text += '4'
-    update_output(True)
+    update_output()
 
 
 def btn5_clicked():
     global output_text
     output_text += '5'
-    update_output(True)
+    update_output()
 
 
 def btn6_clicked():
     global output_text
     output_text += '6'
-    update_output(True)
+    update_output()
 
 
 def btn7_clicked():
     global output_text
     output_text += '7'
-    update_output(True)
+    update_output()
 
 
 def btn8_clicked():
     global output_text
     output_text += '8'
-    update_output(True)
+    update_output()
 
 
 def btn9_clicked():
     global output_text
     output_text += '9'
-    update_output(True)
+    update_output()
 
 
 def operator_clicked(oper):
-    global output_text, memory_text, operators, operating_list
+    global output_text, memory_text, operating_list
 
     if not memory_text and not output_text:  # None / None, do nothing
         return print('operator clicked with no memory or number input')
-    elif not memory_text and output_text:  # None / 100, create (just append?) memory and delete input (output_text)
+    elif output_text:  # (None / 100) or (100 - / 100), create (just append?) memory and delete input (output_text)
+        if float(output_text) == 0.0:
+            output_text = '0'
         operating_list.append(output_text)
         operating_list.append(oper)
         output_text = ''
@@ -104,18 +107,11 @@ def operator_clicked(oper):
         operating_list[-1] = oper
         update_memory()
         return print('operator clicked with memory but no number input')
-    else:  # 100 - / 100, append to memory and delete input (same as case 2?)
-        operating_list.append(output_text)
-        operating_list.append(oper)
-        output_text = ''
-        update_output()
-        update_memory()
-        return print('operator clicked with memory and number input')
+    return print('operator_clicked didn''t work')
 
 
 def bmin_clicked():
     operator_clicked('-')
-    return print('- clicked')
 
 
 def bplus_clicked():
@@ -156,11 +152,16 @@ def btnC_clicked():
 
 
 def bequ_clicked():
-    global operating_list, output_text
+    global operating_list, output_text, operators, operated
     if not operating_list:
         return print('equals pressed when nothing in operating_list')
     else:
-        operating_list.append(output_text)
+        if output_text and float(output_text) == 0.0:
+            output_text = '0'
+        if output_text:
+            operating_list.append(output_text)
+        elif operating_list[-1] in operators:
+            operating_list.pop(-1)
         update_memory()
         opl = operating_list
         total = float(operating_list[0])
@@ -191,7 +192,9 @@ def bequ_clicked():
         else:
             output_text = str(round(float(total), 2))
             update_output()
+        del total
         operating_list = []
+        operated = True
 
 
 window = Tk()
@@ -207,6 +210,7 @@ canvas = Canvas(
     highlightthickness=0,
     relief="ridge")
 canvas.place(x=0, y=0)
+
 # output (bottom)
 entry0_img = PhotoImage(file=f"img_textBox0.png")
 entry0_bg = canvas.create_image(
@@ -222,6 +226,7 @@ output.place(
     x=2, y=82,
     width=166,
     height=38)
+
 # memory (top)
 entry1_img = PhotoImage(file=f"img_textBox1.png")
 entry1_bg = canvas.create_image(
@@ -239,6 +244,7 @@ memory.place(
     width=166,
     height=78
 )
+
 # 0
 img8 = PhotoImage(file=f"img8.png")
 b0 = Button(
@@ -251,6 +257,7 @@ b0.place(
     x=2, y=292,
     width=124,
     height=40)
+
 # 1
 img4 = PhotoImage(file=f"img4.png")
 b1 = Button(
@@ -263,6 +270,7 @@ b1.place(
     x=2, y=250,
     width=40,
     height=40)
+
 # 2
 img5 = PhotoImage(file=f"img5.png")
 b2 = Button(
@@ -275,6 +283,7 @@ b2.place(
     x=44, y=250,
     width=40,
     height=40)
+
 # 3
 img6 = PhotoImage(file=f"img6.png")
 b3 = Button(
@@ -287,6 +296,7 @@ b3.place(
     x=86, y=250,
     width=40,
     height=40)
+
 # 4
 img0 = PhotoImage(file=f"img0.png")
 b4 = Button(
@@ -299,6 +309,7 @@ b4.place(
     x=2, y=208,
     width=40,
     height=40)
+
 # 5
 img1 = PhotoImage(file=f"img1.png")
 b5 = Button(
@@ -311,6 +322,7 @@ b5.place(
     x=44, y=208,
     width=40,
     height=40)
+
 # 6
 img2 = PhotoImage(file=f"img2.png")
 b6 = Button(
@@ -323,6 +335,7 @@ b6.place(
     x=86, y=208,
     width=40,
     height=40)
+
 # 7
 img15 = PhotoImage(file=f"img15.png")
 b7 = Button(
@@ -335,6 +348,7 @@ b7.place(
     x=2, y=166,
     width=40,
     height=40)
+
 # 8
 img11 = PhotoImage(file=f"img11.png")
 b8 = Button(
@@ -347,6 +361,7 @@ b8.place(
     x=44, y=166,
     width=40,
     height=40)
+
 # 9
 img17 = PhotoImage(file=f"img17.png")
 b9 = Button(
@@ -359,6 +374,7 @@ b9.place(
     x=86, y=166,
     width=40,
     height=40)
+
 # -
 img3 = PhotoImage(file=f"img3.png")
 bmin = Button(
@@ -371,6 +387,7 @@ bmin.place(
     x=128, y=208,
     width=40,
     height=40)
+
 # +
 img7 = PhotoImage(file=f"img7.png")
 bplus = Button(
@@ -383,6 +400,7 @@ bplus.place(
     x=128, y=250,
     width=40,
     height=40)
+
 # /
 img16 = PhotoImage(file=f"img16.png")
 bdiv = Button(
@@ -395,6 +413,7 @@ bdiv.place(
     x=128, y=124,
     width=40,
     height=40)
+
 # x
 img13 = PhotoImage(file=f"img13.png")
 bmul = Button(
@@ -407,6 +426,7 @@ bmul.place(
     x=128, y=166,
     width=40,
     height=40)
+
 # =
 img9 = PhotoImage(file=f"img9.png")
 bequ = Button(
@@ -419,6 +439,7 @@ bequ.place(
     x=128, y=292,
     width=40,
     height=40)
+
 # CE
 img10 = PhotoImage(file=f"img10.png")
 bCE = Button(
@@ -431,6 +452,7 @@ bCE.place(
     x=2, y=124,
     width=40,
     height=40)
+
 # C
 img12 = PhotoImage(file=f"img12.png")
 bC = Button(
@@ -443,6 +465,7 @@ bC.place(
     x=44, y=124,
     width=40,
     height=40)
+
 # +/-
 img14 = PhotoImage(file=f"img14.png")
 bneg = Button(
@@ -458,25 +481,3 @@ bneg.place(
 
 window.resizable(False, False)
 window.mainloop()
-
-# outputx = Text(
-#     font="Consolas 28",
-#     bd=0,
-#     bg="#c4c4c4",
-#     highlightthickness=0,
-#     state='disabled')
-#
-# outputx.place(
-#     x=2, y=82,
-#     width=166,
-#     height=38)
-# entry1 = Text(
-#     bd=0,
-#     bg="#c4c4c4",
-#     highlightthickness=0,
-#     font="Calibri 24")
-#
-# entry1.place(
-#     x=2, y=2,
-#     width=166,
-#     height=78)
